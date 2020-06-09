@@ -135,7 +135,6 @@ rule fastp:
         get_fastq
     output:
         fq1  = WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",
-        fq2  = WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",
         html = RESULT_DIR + "fastp/{sample}.html"
     message:"trimming {wildcards.sample} reads"
     threads: 10
