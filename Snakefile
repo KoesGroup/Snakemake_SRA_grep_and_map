@@ -7,6 +7,7 @@
 # Libraries
 ###########
 import pandas as pd
+import glob
 
 ###############
 # Configuration
@@ -46,8 +47,7 @@ samplefile = config["units"]
 
 def sample_is_single_end(sample):
     """This function checks if raeds are single or paired end"""
-    pairedEnd = ["yes", "YES", "TRUE", "T"]
-    if samples.loc[(sample), "paired"] not in pairedEnd:
+    if len(glob.glob(sample + "*.fastq.gz")) == 1:
         return True
     else:
         return False
@@ -77,7 +77,7 @@ rule all:
     input:
         fw  = expand(WORKING_DIR + "{sample}_1.fastq",sample = SAMPLES),
         rev = expand(WORKING_DIR + "{sample}_2.fastq",sample = SAMPLES),
-        bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
+        #bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
         #RESULT_DIR + "counts.txt",
         fq1 = expand(WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",sample = SAMPLES),
         fq2 = expand(WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",sample = SAMPLES),
