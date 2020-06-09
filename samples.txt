@@ -1,0 +1,5 @@
+sample	paired
+DRR088821	yes
+SRR1843831	yes
+SRR653045	yes
+SRR10096525	yes
