@@ -76,11 +76,11 @@ def get_trimmed(wildcards):
 rule all:
     input:
         fw  = expand(WORKING_DIR + "{sample}_1.fastq",sample = SAMPLES),
-        rev = expand(WORKING_DIR + "{sample}_2.fastq",sample = SAMPLES),
+        
         #bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
         #RESULT_DIR + "counts.txt",
         fq1 = expand(WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",sample = SAMPLES),
-        fq2 = expand(WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",sample = SAMPLES),
+        
 
     message:
         "Job done! Removing temporary directory"
@@ -106,7 +106,6 @@ rule get_genome_fasta:
 rule get_SRR_files:
     output:
         fw = WORKING_DIR + "{sample}_1.fastq",
-        rev= WORKING_DIR + "{sample}_2.fastq"
     params:
        SRA = "{sample}"
     message:
@@ -114,7 +113,7 @@ rule get_SRR_files:
     #conda:
     #    "envs/wget.yaml"
     shell:
-        "touch {output.rev}; fastq-dump --split-files {params.SRA}"       
+        "fastq-dump --split-files {params.SRA}"       
 
 #rule get_transcriptome_gtf:
 #    output:
