@@ -20,9 +20,9 @@ make_plots:
   opt_clust_number: "average_silhouette_width"
 refs:
   annotation: "annotations/Petunia_axillaris_v1.6.2_proteins.mapman_annotation.txt.gz"
-  genome: "ftp://ftp.solgenomics.net/genomes/Petunia_axillaris/assembly/Petunia_axillaris_v1.6.2_genome.fasta"
+  genome: "ftp://ftp.psb.ugent.be/pub/plaza/plaza_public_dicots_04/Genomes/cpa.con.gz"
   proteins_fasta: "ftp://ftp.solgenomics.net/genomes/Petunia_axillaris/annotation/Petunia_axillaris_v1.6.2_proteins.fasta"
-  transcriptome_gtf: "ftp://ftp.solgenomics.net/genomes/Petunia_axillaris/annotation/Petunia_axillaris_v1.6.2_gene_models.gff"
+  transcriptome_gtf: "ftp://ftp.psb.ugent.be/pub/plaza/plaza_public_dicots_04/GFF/cpa/annotation.all_transcripts.all_features.cpa.gff3.gz"
 result_dir: "results/"
 trimmomatic:
   LeadMinTrimQual: "3"
