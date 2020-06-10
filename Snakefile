@@ -108,7 +108,7 @@ rule get_SRR_files:
         fw = WORKING_DIR + "fastq/{sample}_1.fastq",
         rev= WORKING_DIR + "fastq/{sample}_2.fastq"
     params:
-       SRA = "{sample}"
+       SRA = "{sample}",
        DIR = "fastq"
     message:
         "using fastq-dump to download SRA data files."
