@@ -47,7 +47,7 @@ samplefile = config["units"]
 
 def sample_is_single_end(sample):
     """This function checks if raeds are single or paired end"""
-    if len(glob.glob(sample + "*.fastq.gz")) == 1:
+    if os.stat(sample+"_2.fastq.gz").st_size < 100:
         return True
     else:
         return False
@@ -80,7 +80,7 @@ rule all:
         #bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
         #RESULT_DIR + "counts.txt",
         fq1 = expand(WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",sample = SAMPLES),
-        
+        fq2 = expand(WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",sample = SAMPLES),
 
     message:
         "Job done! Removing temporary directory"
@@ -106,6 +106,7 @@ rule get_genome_fasta:
 rule get_SRR_files:
     output:
         fw = WORKING_DIR + "{sample}_1.fastq",
+        rev= WORKING_DIR + "{sample}_2.fastq"
     params:
        SRA = "{sample}"
     message:
@@ -113,7 +114,7 @@ rule get_SRR_files:
     #conda:
     #    "envs/wget.yaml"
     shell:
-        "fastq-dump --split-files {params.SRA}"       
+        "touch {output.rev}; fastq-dump --split-files {params.SRA}"       
 
 #rule get_transcriptome_gtf:
 #    output:
@@ -132,9 +133,11 @@ rule get_SRR_files:
 
 rule fastp:
     input:
-        get_fastq
+        fw = WORKING_DIR + "{sample}_1.fastq",
+        rev= WORKING_DIR + "{sample}_2.fastq"
     output:
         fq1  = WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",
+        fq2  = WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",
         html = RESULT_DIR + "fastp/{sample}.html"
     message:"trimming {wildcards.sample} reads"
     threads: 10
@@ -148,14 +151,14 @@ rule fastp:
         if sample_is_single_end(params.sampleName):
             shell("fastp --thread {threads}  --html {output.html} \
             --qualified_quality_phred {params.qualified_quality_phred} \
-            --in1 {input} --out1 {output} \
+            --in1 {input.fw} --out1 {output} \
             2> {log}; \
             touch {output.fq2}")
         else:
             shell("fastp --thread {threads}  --html {output.html} \
             --qualified_quality_phred {params.qualified_quality_phred} \
             --detect_adapter_for_pe \
-            --in1 {input[0]} --in2 {input[1]} --out1 {output.fq1} --out2 {output.fq2}; \
+            --in1 {input.fw} --in2 {input.rev} --out1 {output.fq1} --out2 {output.fq2}; \
             2> {log}")
 
 
