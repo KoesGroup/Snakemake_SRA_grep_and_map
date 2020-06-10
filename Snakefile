@@ -75,7 +75,7 @@ def get_trimmed(wildcards):
 
 rule all:
     input:
-        fw  = expand(WORKING_DIR + "{sample}_1.fastq",sample = SAMPLES),
+        fw  = expand(WORKING_DIR + "fastq/{sample}_1.fastq",sample = SAMPLES),
         
         #bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
         #RESULT_DIR + "counts.txt",
