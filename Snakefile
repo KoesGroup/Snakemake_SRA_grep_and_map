@@ -79,8 +79,8 @@ rule all:
         
         #bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
         #RESULT_DIR + "counts.txt",
-        fq1 = expand(WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",sample = SAMPLES),
-        fq2 = expand(WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",sample = SAMPLES),
+        fq1 = expand(WORKING_DIR + "trimmed/{sample}_R1_trimmed.fq.gz",sample = SAMPLES),
+        fq2 = expand(WORKING_DIR + "trimmed/{sample}_R2_trimmed.fq.gz",sample = SAMPLES),
 
     message:
         "Job done! Removing temporary directory"
@@ -105,16 +105,17 @@ rule get_genome_fasta:
 
 rule get_SRR_files:
     output:
-        fw = WORKING_DIR + "{sample}_1.fastq",
-        rev= WORKING_DIR + "{sample}_2.fastq"
+        fw = WORKING_DIR + "fastq/{sample}_1.fastq",
+        rev= WORKING_DIR + "fastq/{sample}_2.fastq"
     params:
        SRA = "{sample}"
+       DIR = "fastq"
     message:
         "using fastq-dump to download SRA data files."
     #conda:
     #    "envs/wget.yaml"
     shell:
-        "touch {output.rev}; fastq-dump --split-files {params.SRA}"       
+        "touch {output.rev}; fastq-dump --split-files {params.SRA} -O {params.DIR}"       
 
 #rule get_transcriptome_gtf:
 #    output:
@@ -133,11 +134,11 @@ rule get_SRR_files:
 
 rule fastp:
     input:
-        fw = WORKING_DIR + "{sample}_1.fastq",
-        rev= WORKING_DIR + "{sample}_2.fastq"
+        fw = WORKING_DIR + "fastq/{sample}_1.fastq",
+        rev= WORKING_DIR + "fastq/{sample}_2.fastq"
     output:
-        fq1  = WORKING_DIR + "trimmed/" + "{sample}_R1_trimmed.fq.gz",
-        fq2  = WORKING_DIR + "trimmed/" + "{sample}_R2_trimmed.fq.gz",
+        fq1  = WORKING_DIR + "trimmed/{sample}_R1_trimmed.fq.gz",
+        fq2  = WORKING_DIR + "trimmed/{sample}_R2_trimmed.fq.gz",
         html = RESULT_DIR + "fastp/{sample}.html"
     message:"trimming {wildcards.sample} reads"
     threads: 10
