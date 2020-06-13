@@ -21,7 +21,6 @@ RESULT_DIR = config["result_dir"]
 genome_url = config["refs"]["genome"]
 transcriptome_gtf_url= config["refs"]["transcriptome_gtf"]
 
-functional_annotation = config["refs"]["annotation"]
 
 
 ########################
@@ -34,12 +33,10 @@ units = pd.read_table(config["units"], dtype=str).set_index(["sample"], drop=Fal
 # create lists containing the sample names and conditions
 SAMPLES = units.index.get_level_values('sample').unique().tolist()
 #SAMPLES = ["SRR212121","SRR212122"]
-samples = pd.read_csv(config["units"], dtype=str,index_col=0,sep="\t")
+#samples = pd.read_csv(config["units"], dtype=str,index_col=0,sep="\t")
 #CONDITIONS = list(pd.read_table(config["units"])["condition"])
-samplefile = config["units"]
+#samplefile = config["units"]
 
-#paired = dict(zip(list(units["sample"]),list(units["paired"])))
-#print(paired)
 
 ###########################
 # Input functions for rules
@@ -52,21 +49,21 @@ def sample_is_single_end(sample):
     else:
         return False
 
-def get_fastq(wildcards):
-    """ This function checks if the sample has paired end or single end reads
-    and returns 1 or 2 names of the fastq files """
-    if sample_is_single_end(wildcards.sample):
-        return WORKING_DIR + wildcards.sample + "_1.fastq"
-    else:
-        return [WORKING_DIR + wildcards.sample + "_1.fastq", WORKING_DIR + wildcards.sample + "_2.fastq"]
+# def get_fastq(wildcards):
+#     """ This function checks if the sample has paired end or single end reads
+#     and returns 1 or 2 names of the fastq files """
+#     if sample_is_single_end(wildcards.sample):
+#         return WORKING_DIR + wildcards.sample + "_1.fastq"
+#     else:
+#         return [WORKING_DIR + wildcards.sample + "_1.fastq", WORKING_DIR + wildcards.sample + "_2.fastq"]
 
-def get_trimmed(wildcards):
-    """ This function checks if sample is paired end or single end
-    and returns 1 or 2 names of the trimmed fastq files """
-    if sample_is_single_end(wildcards.sample):
-        return WORKING_DIR + "trimmed/" + wildcards.sample + "_R1_trimmed.fq.gz"
-    else:
-        return [WORKING_DIR + "trimmed/" + wildcards.sample + "_R1_trimmed.fq.gz", WORKING_DIR + "trimmed/" + wildcards.sample + "_R2_trimmed.fq.gz"]
+# def get_trimmed(wildcards):
+#     """ This function checks if sample is paired end or single end
+#     and returns 1 or 2 names of the trimmed fastq files """
+#     if sample_is_single_end(wildcards.sample):
+#         return WORKING_DIR + "trimmed/" + wildcards.sample + "_R1_trimmed.fq.gz"
+#     else:
+#         return [WORKING_DIR + "trimmed/" + wildcards.sample + "_R1_trimmed.fq.gz", WORKING_DIR + "trimmed/" + wildcards.sample + "_R2_trimmed.fq.gz"]
 
 
 #################
@@ -103,8 +100,8 @@ rule get_genome_fasta:
 
 rule get_SRR_files:
     output:
-        fw = WORKING_DIR + "fastq/{sample}_1.fastq",
-        rev= WORKING_DIR + "fastq/{sample}_2.fastq"
+        fw = temp(WORKING_DIR + "fastq/{sample}_1.fastq"),
+        rev= temp(WORKING_DIR + "fastq/{sample}_2.fastq")
     params:
        SRA = "{sample}",
        DIR = "fastq"
