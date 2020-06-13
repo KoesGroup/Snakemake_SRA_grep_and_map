@@ -47,7 +47,7 @@ samplefile = config["units"]
 
 def sample_is_single_end(sample):
     """This function checks if raeds are single or paired end"""
-    if os.stat(sample+"_2.fastq.gz").st_size < 100:
+    if os.stat(sample).st_size < 100:
         return True
     else:
         return False
@@ -75,13 +75,11 @@ def get_trimmed(wildcards):
 
 rule all:
     input:
-        fw  = expand(WORKING_DIR + "fastq/{sample}_1.fastq",sample = SAMPLES),
-        
-        #bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
+        #fw  = expand(WORKING_DIR + "fastq/{sample}_1.fastq",sample = SAMPLES),
         #RESULT_DIR + "counts.txt",
         fq1 = expand(WORKING_DIR + "trimmed/{sample}_R1_trimmed.fq.gz",sample = SAMPLES),
         fq2 = expand(WORKING_DIR + "trimmed/{sample}_R2_trimmed.fq.gz",sample = SAMPLES),
-
+        bam = expand(WORKING_DIR + "mapped/{sample}.bam", sample = SAMPLES),
     message:
         "Job done! Removing temporary directory"
 
@@ -95,7 +93,7 @@ rule all:
 
 rule get_genome_fasta:
     output:
-        WORKING_DIR + "genome/genome.fasta"
+        WORKING_DIR + "genome/genome.fasta.gz"
     message:
         "downloading the required genomic fasta file"
     #conda:
@@ -146,10 +144,10 @@ rule fastp:
         RESULT_DIR + "fastp/{sample}.log.txt"
     params:
         paired = "{lambda wildcards:paired[wildcards.SAMPLES]}",
-        sampleName = "{sample}",
+        sampleName = "fastq/{sample}",
         qualified_quality_phred = config["fastp"]["qualified_quality_phred"]
     run:
-        if sample_is_single_end(params.sampleName):
+        if sample_is_single_end(input.rev):
             shell("fastp --thread {threads}  --html {output.html} \
             --qualified_quality_phred {params.qualified_quality_phred} \
             --in1 {input.fw} --out1 {output} \
@@ -158,7 +156,6 @@ rule fastp:
         else:
             shell("fastp --thread {threads}  --html {output.html} \
             --qualified_quality_phred {params.qualified_quality_phred} \
-            --detect_adapter_for_pe \
             --in1 {input.fw} --in2 {input.rev} --out1 {output.fq1} --out2 {output.fq2}; \
             2> {log}")
 
@@ -169,28 +166,29 @@ rule fastp:
 
 rule index:
     input:
-        WORKING_DIR + "genome/genome.fasta"
+        WORKING_DIR + "genome/genome.fasta.gz"
     output:
         [WORKING_DIR + "genome/genome." + str(i) + ".ht2" for i in range(1,9)]
     message:
         "indexing genome"
     params:
-        WORKING_DIR + "genome/genome"
+        index  = WORKING_DIR + "genome/genome",
+        genome = WORKING_DIR + "genome/genome.fasta"
     threads: 10
     shell:
-        "hisat2-build -p {threads} {input} {params} --quiet"
+        "gunzip {input} ; hisat2-build -p {threads} {params.genome} {params.index} --quiet"
 
 rule hisat_mapping:
     input:
-        get_trimmed,
+        fq1  = WORKING_DIR + "trimmed/{sample}_R1_trimmed.fq.gz",
+        fq2  = WORKING_DIR + "trimmed/{sample}_R2_trimmed.fq.gz",
         indexFiles = [WORKING_DIR + "genome/genome." + str(i) + ".ht2" for i in range(1,9)]
     output:
         bams  = WORKING_DIR + "mapped/{sample}.bam",
-        sum   = RESULT_DIR + "logs/{sample}_sum.txt",
         met   = RESULT_DIR + "logs/{sample}_met.txt"
     params:
         indexName = str(WORKING_DIR + "genome/genome"),
-        sampleName = "{sample}"
+        sampleName = "trimmed/{sample}_R2_trimmed.fq.gz"
     # conda:
     #     "envs/hisat_mapping.yaml"
     message:
@@ -198,11 +196,11 @@ rule hisat_mapping:
     threads: 10
     run:
         if sample_is_single_end(params.sampleName):
-            shell("hisat2 -p {threads} --summary-file {output.sum} --met-file {output.met} -x {params.indexName} \
-            -U {input} | samtools view -Sb -F 4 -o {output.bams}")
+            shell("hisat2 -p {threads} --met-file {output.met} -x {params.indexName} \
+            -U {input.fq1} | samtools view -Sb -F 4 -o {output.bams}")
         else:
-            shell("hisat2 -p {threads} --summary-file {output.sum} --met-file {output.met} -x {params.indexName} \
-            -1 {input[0]} -2 {input[1]} | samtools view -Sb -F 4 -o {output.bams}")
+            shell("hisat2 -p {threads} --met-file {output.met} -x {params.indexName} \
+            -1 {input.fq1} -2 {input.fq2} | samtools view -Sb -F 4 -o {output.bams}")
 
 
 ######################
