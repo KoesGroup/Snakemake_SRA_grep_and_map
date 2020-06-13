@@ -36,4 +36,4 @@ trimmomatic:
   simpleClipThreshold: "10"
   windowSize: "4"
 units: "samples.txt"
-working_dir: "temp/"
+working_dir: ""
